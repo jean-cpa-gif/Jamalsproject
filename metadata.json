@@ -1,0 +1,8 @@
+{
+  "name": "Remix: Controle de Saúde",
+  "description": "Aplicativo completo de acompanhamento e monitoramento de saúde: treinos, metas de dieta, contador de passos, ingestão de água e estatísticas corporais.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
