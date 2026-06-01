@@ -1,13 +1,14 @@
-import { WeightFatEntry, Workout, MealLog, DietSettings, DailyActivityLog, ReminderSettings } from './types';
+import { WeightFatEntry, Workout, MealLog, DietSettings, DailyActivityLog, ReminderSettings, Task, TaskList, TaskDailyGoal } from './types';
 
 // Retorna datas retroativas de acordo com o dia de hoje
 export function getRetroactiveDateString(daysAgo: number): string {
-  const date = new Date('2026-05-31T17:15:51Z'); // Data de referência baseada no dia atual do app
+  const date = new Date(); 
   date.setDate(date.getDate() - daysAgo);
   return date.toISOString().split('T')[0];
 }
 
 export const INITIAL_WEIGHT_ENTRIES: WeightFatEntry[] = [
+
   { id: '1', date: getRetroactiveDateString(6), weight: 81.2, bodyFat: 21.0, hydrationLevel: 75 },
   { id: '2', date: getRetroactiveDateString(5), weight: 81.0, bodyFat: 20.8, hydrationLevel: 80 },
   { id: '3', date: getRetroactiveDateString(4), weight: 80.7, bodyFat: 20.6, hydrationLevel: 85 },
@@ -78,4 +79,46 @@ export const INITIAL_REMINDER_SETTINGS: ReminderSettings = {
   waterInterval: 60, // em minutos
   stepInterval: 120, // em minutos
   pushNotifications: true
+};
+
+export const INITIAL_TASK_LISTS: TaskList[] = [
+  { id: 'list-1', name: 'Geral', order: 0 },
+  { id: 'list-2', name: 'Lista de Compras', order: 1 },
+];
+
+export const INITIAL_TASKS: Task[] = [
+  {
+    id: 't-1',
+    listId: 'list-1',
+    title: 'Estudar TypeScript',
+    description: 'Revisar tipos genéricos e utilitários.',
+    completed: true,
+    dueDate: getRetroactiveDateString(0),
+    createdAt: new Date().toISOString(),
+    filterTag: 'today',
+    subtasks: [
+      { id: 'st-1', title: 'Ler documentação', completed: true },
+    ],
+    order: 0,
+  },
+  {
+    id: 't-2',
+    listId: 'list-2',
+    title: 'Ir ao mercado',
+    description: 'Comprar frutas e vegetais',
+    completed: false,
+    dueDate: getRetroactiveDateString(-1),
+    createdAt: new Date().toISOString(),
+    filterTag: 'tomorrow',
+    subtasks: [
+      { id: 'st-2', title: 'Maçãs', completed: false },
+      { id: 'st-3', title: 'Ovos', completed: false },
+    ],
+    order: 1,
+  }
+];
+
+export const INITIAL_TASK_GOAL: TaskDailyGoal = {
+  date: getRetroactiveDateString(0),
+  targetTasks: 5,
 };

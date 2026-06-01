@@ -12,7 +12,9 @@ import {
   Trash2, 
   AlertCircle,
   TrendingDown,
-  Info
+  Info,
+  Sparkles,
+  Search
 } from 'lucide-react';
 
 interface DietViewProps {
@@ -43,11 +45,63 @@ export function DietView({
   const [isEditingWrittenDiet, setIsEditingWrittenDiet] = useState(false);
 
   // Estados para registro de refeição
+  const [mealName, setMealName] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isAiLoading, setIsAiLoading] = useState(false);
   const [mealCalories, setMealCalories] = useState('');
   const [mealProtein, setMealProtein] = useState('');
   const [mealCarbs, setMealCarbs] = useState('');
   const [mealFat, setMealFat] = useState('');
   const [mealDate, setMealDate] = useState(() => new Date().toISOString().split('T')[0]);
+
+  // Blacklist de sugestões excluídas localmente pelo usuário
+  const [excludedSuggestions, setExcludedSuggestions] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('cs_excluded_diet_suggestions');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const handleExcludeSuggestion = (name: string) => {
+    const updated = [...excludedSuggestions, name.toLowerCase()];
+    setExcludedSuggestions(updated);
+    localStorage.setItem('cs_excluded_diet_suggestions', JSON.stringify(updated));
+  };
+
+  // Obter sugestões de refeições passadas (filtrando as excluídas)
+  const suggestedMeals = mealLogs
+    .filter((m, i, arr) => 
+      m.name && 
+      m.name.toLowerCase().includes(mealName.toLowerCase()) && 
+      !excludedSuggestions.includes(m.name.toLowerCase()) &&
+      arr.findIndex(x => x.name?.toLowerCase() === m.name?.toLowerCase()) === i
+    )
+    .slice(0, 5);
+
+  const handleFetchAiMacros = async () => {
+    if (!mealName.trim()) return;
+    setIsAiLoading(true);
+    try {
+      const res = await fetch('/api/meal-macros', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mealName })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setMealCalories(String(data.calories));
+        setMealProtein(String(data.protein));
+        setMealCarbs(String(data.carbs));
+        setMealFat(String(data.fat));
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsAiLoading(false);
+    }
+  };
 
   // Toast e feedbacks
   const [settingsSuccess, setSettingsSuccess] = useState(false);
@@ -89,8 +143,8 @@ export function DietView({
   };
 
   // Submissão da refeição consumida
-  const handleMealSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleMealSubmit = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     const kcal = parseFloat(mealCalories);
     const prot = parseFloat(mealProtein) || 0;
     const carb = parseFloat(mealCarbs) || 0;
@@ -99,6 +153,7 @@ export function DietView({
     if (isNaN(kcal)) return;
 
     onAddMeal({
+      name: mealName.trim() || undefined,
       date: mealDate,
       calories: kcal,
       protein: prot,
@@ -106,10 +161,12 @@ export function DietView({
       fat: fat
     });
 
+    setMealName('');
     setMealCalories('');
     setMealProtein('');
     setMealCarbs('');
     setMealFat('');
+    setShowSuggestions(false);
     setMealSuccess(true);
     setTimeout(() => setMealSuccess(false), 2500);
   };
@@ -358,6 +415,96 @@ export function DietView({
 
           <form onSubmit={handleMealSubmit} className="space-y-4" id="meal-form">
             <div>
+              <label htmlFor="mealNameInput" className="block text-xs font-bold text-slate-600 mb-1">Refeição / Alimento</label>
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <input
+                    id="mealNameInput"
+                    type="text"
+                    required
+                    placeholder="Ex: Pão de sal, Whey protein, Almoço..."
+                    value={mealName}
+                    onChange={(e) => {
+                      setMealName(e.target.value);
+                      setShowSuggestions(true);
+                    }}
+                    onFocus={() => setShowSuggestions(true)}
+                    onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                    className="w-full text-sm p-3 pr-9 border border-slate-100 rounded-xl bg-slate-50/50 focus:bg-white focus:ring-1 focus:ring-indigo-500 outline-none transition"
+                  />
+                  <Search className="w-4 h-4 text-slate-400 absolute right-3 top-3.5" />
+
+                  {/* Sugestões inteligentes do histórico local */}
+                  {showSuggestions && mealName.trim() && suggestedMeals.length > 0 && (
+                    <div className="absolute z-20 w-full mt-1 bg-white border border-slate-150 rounded-xl shadow-lg max-h-48 overflow-y-auto divide-y divide-slate-50">
+                      {suggestedMeals.map((meal) => (
+                        <div key={meal.id} className="group flex items-center justify-between hover:bg-slate-50 pr-2 transition">
+                          <button
+                            type="button"
+                            onMouseDown={() => {
+                              setMealName(meal.name || '');
+                              setMealCalories(String(meal.calories));
+                              setMealProtein(String(meal.protein));
+                              setMealCarbs(String(meal.carbs));
+                              setMealFat(String(meal.fat));
+                              setShowSuggestions(false);
+                            }}
+                            className="flex-1 text-left p-3 px-4 text-xs transition flex flex-col gap-0.5 cursor-pointer"
+                          >
+                            <span className="font-bold text-slate-700">{meal.name}</span>
+                            <span className="text-3xs text-slate-400">
+                              {meal.calories} kcal • P: {meal.protein}g • C: {meal.carbs}g • G: {meal.fat}g
+                            </span>
+                          </button>
+                          <button
+                            type="button"
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              if (meal.name) {
+                                handleExcludeSuggestion(meal.name);
+                              }
+                            }}
+                            className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition cursor-pointer md:opacity-0 group-hover:opacity-100 shrink-0"
+                            title="Excluir sugestão"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Botão de Estimativa com IA */}
+                <button
+                  type="button"
+                  onClick={handleFetchAiMacros}
+                  disabled={isAiLoading || !mealName.trim()}
+                  className="p-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-xl transition flex items-center justify-center border border-indigo-100/50 disabled:opacity-50 disabled:cursor-not-allowed shrink-0 cursor-pointer"
+                  title="Estimar nutrientes com Inteligência Artificial"
+                >
+                  {isAiLoading ? (
+                    <span className="w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <Sparkles className="w-4 h-4" />
+                  )}
+                </button>
+
+                {/* Botão de Envio Rápido */}
+                <button
+                  type="button"
+                  onClick={() => handleMealSubmit()}
+                  disabled={!mealCalories || isNaN(parseFloat(mealCalories))}
+                  className="p-3 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl transition flex items-center justify-center shrink-0 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  title="Confirmar e registrar refeição"
+                >
+                  <Check className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            <div>
               <label htmlFor="mealCaloriesInput" className="block text-xs font-bold text-slate-600 mb-1">Calorias (kcal)</label>
               <input
                 id="mealCaloriesInput"
@@ -520,7 +667,7 @@ export function DietView({
           <table className="w-full text-left border-collapse text-xs">
             <thead>
               <tr className="border-b border-slate-100 text-slate-400 uppercase font-extrabold tracking-wider">
-                <th className="py-3 px-4">Horário</th>
+                <th className="py-3 px-4">Refeição / Horário</th>
                 <th className="py-3 px-4">Calorias</th>
                 <th className="py-3 px-4">Proteínas</th>
                 <th className="py-3 px-4">Carboidratos</th>
@@ -531,7 +678,10 @@ export function DietView({
             <tbody>
               {todayMeals.map((meal) => (
                 <tr key={meal.id} className="border-b border-slate-50 hover:bg-slate-50 transition font-medium" id={`meal-tr-${meal.id}`}>
-                  <td className="py-3.5 px-4 font-semibold text-slate-500">{meal.createdAt || '--:--'}</td>
+                  <td className="py-3.5 px-4 font-semibold text-slate-500">
+                    <div className="font-bold text-slate-800">{meal.name || 'Refeição'}</div>
+                    <div className="text-3xs text-slate-400 mt-0.5">{meal.createdAt || '--:--'}</div>
+                  </td>
                   <td className="py-3.5 px-4 font-bold text-rose-600">{meal.calories} kcal</td>
                   <td className="py-3.5 px-4 font-semibold text-blue-600">{meal.protein}g</td>
                   <td className="py-3.5 px-4 font-semibold text-emerald-600">{meal.carbs}g</td>

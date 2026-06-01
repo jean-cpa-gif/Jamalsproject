@@ -71,7 +71,7 @@ export function WorkoutView({
   return (
     <div className="space-y-6" id="workouts-container">
       {/* Banner Principal */}
-      <div className="bg-gradient-to-tr from-indigo-600 via-pink-500 to-pink-600 text-white rounded-3xl p-6 shadow-md flex flex-col md:flex-row items-center justify-between" id="workouts-banner">
+      <div className="bg-gradient-to-tr from-indigo-700 via-indigo-600 to-purple-700 text-white rounded-3xl p-6 shadow-md flex flex-col md:flex-row items-center justify-between" id="workouts-banner">
         <div className="mb-4 md:mb-0 text-center md:text-left">
           <div className="inline-flex items-center space-x-2 bg-white/20 p-1 px-3.5 rounded-full text-xs font-extrabold backdrop-blur-xs mb-2 text-white">
             <Dumbbell className="w-4 h-4" />
@@ -83,7 +83,7 @@ export function WorkoutView({
           </p>
         </div>
         <div className="text-center md:text-right bg-white/10 p-4 rounded-2xl backdrop-blur-xs border border-white/10" id="workouts-completion-badge">
-          <p className="text-[10px] text-pink-100 uppercase tracking-widest font-black">Meta Diária</p>
+          <p className="text-[10px] text-purple-200 uppercase tracking-widest font-black">Meta Diária</p>
           <p className="text-3xl md:text-4xl font-display font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-white to-cyan-200">
             {workouts.filter(w => w.completed).length} / {workouts.length}
           </p>
@@ -95,7 +95,7 @@ export function WorkoutView({
         {/* Formulário - Adicionar Treino */}
         <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100/80 h-fit vibrant-card-glow-indigo" id="add-workout-card">
           <h3 className="text-base font-display font-bold text-slate-800 mb-4 flex items-center gap-2">
-            <Plus className="w-5 h-5 text-pink-500" />
+            <Plus className="w-5 h-5 text-purple-600" />
             Adicionar Novo Exercício
           </h3>
 
@@ -183,7 +183,7 @@ export function WorkoutView({
              <button
               id="submitWorkoutBtn"
               type="submit"
-              className="w-full bg-gradient-to-r from-indigo-600 via-pink-500 to-pink-600 hover:opacity-95 text-white font-bold text-sm p-3.5 rounded-xl transition-all shadow-md shadow-pink-100 flex items-center justify-center space-x-1.5 cursor-pointer"
+              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 hover:opacity-95 text-white font-bold text-sm p-3.5 rounded-xl transition-all shadow-md shadow-indigo-100/80 flex items-center justify-center space-x-1.5 cursor-pointer"
             >
               <Plus className="w-4.5 h-4.5" />
               <span>Adicionar Exercício</span>
@@ -192,7 +192,7 @@ export function WorkoutView({
         </div>
 
         {/* Listagem de Treinos */}
-        <div className="lg:col-span-2 bg-white p-6 rounded-3xl shadow-sm border border-slate-100/80 flex flex-col vibrant-card-glow-pink" id="workouts-list-card">
+        <div className="lg:col-span-2 bg-white p-6 rounded-3xl shadow-sm border border-slate-100/80 flex flex-col vibrant-card-glow-indigo" id="workouts-list-card">
           {/* Top da listagem com busca e filtros */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
             <div>

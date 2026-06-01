@@ -6,7 +6,10 @@ import {
   MealLog, 
   DietSettings, 
   DailyActivityLog, 
-  ReminderSettings 
+  ReminderSettings,
+  Task,
+  TaskList,
+  TaskDailyGoal
 } from './types';
 import { 
   INITIAL_WEIGHT_ENTRIES, 
@@ -15,6 +18,9 @@ import {
   INITIAL_DIET_SETTINGS, 
   INITIAL_ACTIVITY_LOGS, 
   INITIAL_REMINDER_SETTINGS,
+  INITIAL_TASKS,
+  INITIAL_TASK_LISTS,
+  INITIAL_TASK_GOAL,
   getRetroactiveDateString
 } from './initialData';
 import { DashboardView } from './components/DashboardView';
@@ -32,11 +38,16 @@ import {
   Sparkles,
   Volume2,
   Download,
-  Upload
+  Upload,
+  Sun,
+  Moon,
+  Notebook
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { TaskView } from './components/TaskView';
 
 interface Toast {
+
   id: string;
   title: string;
   body: string;
@@ -47,6 +58,20 @@ export default function App() {
   // 1. Estados Centrais do Aplicativo
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
   
+  const [darkMode, setDarkMode] = useState<boolean>(() => {
+    const local = localStorage.getItem('cs_dark_mode');
+    return local ? JSON.parse(local) : false;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('cs_dark_mode', JSON.stringify(darkMode));
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [darkMode]);
+
   const [weightEntries, setWeightEntries] = useState<WeightFatEntry[]>(() => {
     const local = localStorage.getItem('cs_weight_entries');
     return local ? JSON.parse(local) : INITIAL_WEIGHT_ENTRIES;
@@ -77,10 +102,37 @@ export default function App() {
     return local ? JSON.parse(local) : INITIAL_REMINDER_SETTINGS;
   });
 
+  const [tasks, setTasks] = useState<Task[]>(() => {
+    const local = localStorage.getItem('cs_tasks');
+    return local ? JSON.parse(local) : INITIAL_TASKS;
+  });
+
+  const [taskLists, setTaskLists] = useState<TaskList[]>(() => {
+    const local = localStorage.getItem('cs_task_lists');
+    return local ? JSON.parse(local) : INITIAL_TASK_LISTS;
+  });
+
+  const [taskGoal, setTaskGoal] = useState<TaskDailyGoal>(() => {
+    const local = localStorage.getItem('cs_task_goal');
+    return local ? JSON.parse(local) : INITIAL_TASK_GOAL;
+  });
+
   // Estado para os Toasts/Notificações in-app
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   // 2. Efeitos de Sincronização LocalStorage
+  useEffect(() => {
+    localStorage.setItem('cs_tasks', JSON.stringify(tasks));
+  }, [tasks]);
+
+  useEffect(() => {
+    localStorage.setItem('cs_task_lists', JSON.stringify(taskLists));
+  }, [taskLists]);
+
+  useEffect(() => {
+    localStorage.setItem('cs_task_goal', JSON.stringify(taskGoal));
+  }, [taskGoal]);
+
   useEffect(() => {
     localStorage.setItem('cs_weight_entries', JSON.stringify(weightEntries));
   }, [weightEntries]);
@@ -389,7 +441,14 @@ export default function App() {
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data));
     const downloadAnchorNode = document.createElement('a');
     downloadAnchorNode.setAttribute("href", dataStr);
-    downloadAnchorNode.setAttribute("download", "healthstat_backup_" + new Date().toISOString().split('T')[0] + ".json");
+    
+    // Format date and time for backup filename
+    const now = new Date();
+    const dateStr = now.toISOString().split('T')[0];
+    const timeStr = String(now.getHours()).padStart(2, '0') + 'h' + 
+                    String(now.getMinutes()).padStart(2, '0') + 'm';
+    
+    downloadAnchorNode.setAttribute("download", `healthstat_backup_${dateStr}_${timeStr}.json`);
     document.body.appendChild(downloadAnchorNode);
     downloadAnchorNode.click();
     downloadAnchorNode.remove();
@@ -449,67 +508,98 @@ export default function App() {
           </div>
 
           {/* MENUS E BOTÕES NO TOPO DO APP PARA ALTERNAR TELAS */}
-          <nav className="flex items-center bg-slate-100/75 p-1 rounded-2xl border border-slate-200/40 shadow-xs" id="top-nav">
-            {/* Botão 1: Painel Geral/Dashboard */}
-            <button
-              id="tabBtnDashboard"
-              onClick={() => setActiveTab('dashboard')}
-              className={`p-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 cursor-pointer ${
-                activeTab === 'dashboard' 
-                  ? 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-md shadow-indigo-100' 
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
-              }`}
-              title="Painel Principal de Health Status"
-            >
-              <Activity className={`w-4 h-4 shrink-0 transition-transform ${activeTab === 'dashboard' ? 'scale-110 text-white' : 'text-indigo-600'}`} />
-              <span className="hidden sm:inline">Painel Geral</span>
-            </button>
+          <div className="flex items-center gap-3 w-full sm:w-auto justify-center sm:justify-end" id="nav-and-toggle-container">
+            <nav className="flex items-center bg-slate-100/75 p-1 rounded-2xl border border-slate-200/40 shadow-xs" id="top-nav">
+              {/* Botão 1: Painel Geral/Dashboard */}
+              <button
+                id="tabBtnDashboard"
+                onClick={() => setActiveTab('dashboard')}
+                className={`p-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 cursor-pointer ${
+                  activeTab === 'dashboard' 
+                    ? 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-md shadow-indigo-100' 
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                }`}
+                title="Painel Principal de Health Status"
+              >
+                <Activity className={`w-4 h-4 shrink-0 transition-transform ${activeTab === 'dashboard' ? 'scale-110 text-white' : 'text-indigo-600'}`} />
+                <span className="hidden sm:inline">Painel Geral</span>
+              </button>
 
-            {/* Botão 2: exercicio físico (Halter) */}
-            <button
-              id="tabBtnWorkouts"
-              onClick={() => setActiveTab('workouts')}
-              className={`p-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 cursor-pointer ${
-                activeTab === 'workouts' 
-                  ? 'bg-gradient-to-r from-pink-500 to-pink-600 text-white shadow-md shadow-pink-100' 
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
-              }`}
-              title="Exercícios e Treino"
-            >
-              <Dumbbell className={`w-4 h-4 shrink-0 transition-transform ${activeTab === 'workouts' ? 'rotate-12 text-white' : 'text-pink-500'}`} />
-              <span className="hidden sm:inline">Exercícios (Halter)</span>
-            </button>
+              {/* Botão 2: exercicio físico (Halter) */}
+              <button
+                id="tabBtnWorkouts"
+                onClick={() => setActiveTab('workouts')}
+                className={`p-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 cursor-pointer ${
+                  activeTab === 'workouts' 
+                    ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md shadow-indigo-100/50' 
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                }`}
+                title="Exercícios e Treino"
+              >
+                <Dumbbell className={`w-4 h-4 shrink-0 transition-transform ${activeTab === 'workouts' ? 'rotate-12 text-white' : 'text-indigo-600'}`} />
+                <span className="hidden sm:inline">Exercícios (Halter)</span>
+              </button>
 
-            {/* Botão 3: coxa de galinha */}
-            <button
-              id="tabBtnDiet"
-              onClick={() => setActiveTab('diet')}
-              className={`p-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 cursor-pointer ${
-                activeTab === 'diet' 
-                  ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-md shadow-amber-100' 
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
-              }`}
-              title="Menu e Dieta"
-            >
-              <Drumstick className={`w-4 h-4 shrink-0 transition-transform ${activeTab === 'diet' ? 'scale-110 text-white' : 'text-amber-500'}`} />
-              <span className="hidden sm:inline">Dieta (Coxa)</span>
-            </button>
+              {/* Botão 3: coxa de galinha */}
+              <button
+                id="tabBtnDiet"
+                onClick={() => setActiveTab('diet')}
+                className={`p-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 cursor-pointer ${
+                  activeTab === 'diet' 
+                    ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-md shadow-amber-100' 
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                }`}
+                title="Menu e Dieta"
+              >
+                <Drumstick className={`w-4 h-4 shrink-0 transition-transform ${activeTab === 'diet' ? 'scale-110 text-white' : 'text-amber-500'}`} />
+                <span className="hidden sm:inline">Dieta (Coxa)</span>
+              </button>
 
-            {/* Botão 4: Passos e beber água */}
+              {/* Botão 4: Passos e beber água */}
+              <button
+                id="tabBtnActivity"
+                onClick={() => setActiveTab('activity')}
+                className={`p-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 cursor-pointer ${
+                  activeTab === 'activity' 
+                    ? 'bg-gradient-to-r from-cyan-500 to-cyan-600 text-white shadow-md shadow-cyan-100' 
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                }`}
+                title="Passos e Ingestão de Água"
+              >
+                <Footprints className={`w-4 h-4 shrink-0 transition-transform ${activeTab === 'activity' ? 'translate-y-[-1px] text-white' : 'text-cyan-500'}`} />
+                <span className="hidden xl:inline">Passos & Água</span>
+              </button>
+
+              {/* Botão 5: Tarefas To-Do */}
+              <button
+                id="tabBtnTasks"
+                onClick={() => setActiveTab('tasks')}
+                className={`p-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 cursor-pointer ${
+                  activeTab === 'tasks' 
+                    ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-md shadow-emerald-100 dark:shadow-none' 
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-white/50 dark:hover:bg-slate-700/50 dark:text-slate-400'
+                }`}
+                title="Lista de Tarefas do Caderninho"
+              >
+                <Notebook className={`w-4 h-4 shrink-0 transition-transform ${activeTab === 'tasks' ? 'scale-110 text-white' : 'text-emerald-500'}`} />
+                <span className="hidden xl:inline">Caderninho</span>
+              </button>
+            </nav>
+
+            {/* Botão do Modo Escuro */}
             <button
-              id="tabBtnActivity"
-              onClick={() => setActiveTab('activity')}
-              className={`p-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 cursor-pointer ${
-                activeTab === 'activity' 
-                  ? 'bg-gradient-to-r from-cyan-500 to-cyan-600 text-white shadow-md shadow-cyan-100' 
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
-              }`}
-              title="Passos e Ingestão de Água"
+              onClick={() => setDarkMode(!darkMode)}
+              className="p-2.5 rounded-2xl bg-slate-100/75 text-slate-600 hover:text-slate-900 transition-all shadow-xs cursor-pointer flex items-center justify-center shrink-0 border border-slate-200/40"
+              title={darkMode ? "Ativar Modo Claro" : "Ativar Modo Escuro"}
+              id="dark-mode-toggle"
             >
-              <Footprints className={`w-4 h-4 shrink-0 transition-transform ${activeTab === 'activity' ? 'translate-y-[-1px] text-white' : 'text-cyan-500'}`} />
-              <span className="hidden sm:inline">Compartilhar Passos & Água</span>
+              {darkMode ? (
+                <Sun className="w-4 h-4 text-amber-500 fill-amber-200 animate-pulse" />
+              ) : (
+                <Moon className="w-4 h-4 text-slate-600" />
+              )}
             </button>
-          </nav>
+          </div>
         </div>
       </header>
 
@@ -567,6 +657,17 @@ export default function App() {
                 onUpdateReminderSettings={handleUpdateReminderSettings}
                 onTriggerNotification={triggerNotification}
                 onAddPastDayLog={handleAddPastDayLog}
+              />
+            )}
+
+            {activeTab === 'tasks' && (
+              <TaskView 
+                tasks={tasks}
+                setTasks={setTasks}
+                taskLists={taskLists}
+                setTaskLists={setTaskLists}
+                taskGoal={taskGoal}
+                setTaskGoal={setTaskGoal}
               />
             )}
           </motion.div>

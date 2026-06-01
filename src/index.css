@@ -67,3 +67,196 @@
 .animate-float-slow {
   animation: float 4s ease-in-out infinite;
 }
+
+/* ==========================================
+   Sleek Dark Mode Override Selectors
+   ========================================== */
+
+/* Configure standard v4 dark selector context fallback */
+@variant dark (&:where(.dark, .dark *));
+
+.dark {
+  color-scheme: dark;
+}
+
+.dark body, .dark #app-wrapper {
+  background-color: #0b0f19;
+  color: #f1f5f9;
+}
+
+/* Ambient glowing dark backdrop mesh gradient */
+.dark .bg-mesh-gradient {
+  background-color: #0b0f19;
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.12) 0px, transparent 40%),
+    radial-gradient(at 50% 0%, rgba(236, 72, 153, 0.08) 0px, transparent 40%),
+    radial-gradient(at 100% 0%, rgba(6, 182, 212, 0.12) 0px, transparent 40%),
+    radial-gradient(at 100% 100%, rgba(245, 158, 11, 0.04) 0px, transparent 40%),
+    radial-gradient(at 0% 100%, rgba(16, 185, 129, 0.04) 0px, transparent 40%);
+}
+
+.dark header#main-header {
+  background-color: rgba(13, 19, 33, 0.85) !important;
+  border-color: rgba(255, 255, 255, 0.06) !important;
+  box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.3);
+}
+
+.dark #top-nav {
+  background-color: rgba(26, 36, 57, 0.8) !important;
+  border-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+.dark nav button {
+  color: #94a3b8 !important;
+}
+
+.dark nav button:hover {
+  color: #f1f5f9 !important;
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Ensure white cards transition to beautiful dark slate components */
+.dark .bg-white {
+  background-color: #111827 !important;
+  border-color: rgba(255, 255, 255, 0.06) !important;
+  color: #f1f5f9 !important;
+}
+
+/* Input fields matching the dark palette */
+.dark input, .dark select, .dark textarea {
+  background-color: #182235 !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  color: #f1f5f9 !important;
+}
+
+.dark input:focus, .dark select:focus {
+  border-color: #6366f1 !important;
+  ring-color: #6366f1 !important;
+}
+
+.dark select option {
+  background-color: #111827 !important;
+  color: #f1f5f9 !important;
+}
+
+.dark .bg-slate-50, .dark .bg-slate-50\/50, .dark .bg-slate-100\/75 {
+  background-color: #182235 !important;
+}
+
+.dark .bg-slate-100 {
+  background-color: #131b2e !important;
+}
+
+/* Color class refinements for dark background contrast */
+.dark .text-slate-800 {
+  color: #f1f5f9 !important;
+}
+
+.dark .text-slate-700 {
+  color: #e2e8f0 !important;
+}
+
+.dark .text-slate-600 {
+  color: #cbd5e1 !important;
+}
+
+.dark .text-slate-500 {
+  color: #94a3b8 !important;
+}
+
+.dark .text-slate-400 {
+  color: #64748b !important;
+}
+
+.dark .border-slate-100 {
+  border-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+.dark .border-slate-200 {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.dark .border-slate-200\/40 {
+  border-color: rgba(255, 255, 255, 0.04) !important;
+}
+
+.dark footer#app-footer {
+  background-color: #0b0f19 !important;
+  border-color: rgba(255, 255, 255, 0.05) !important;
+  color: #475569 !important;
+}
+
+/* Glowing tabs & items */
+.dark .vibrant-card-glow-indigo {
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(99, 102, 241, 0.15);
+}
+
+.dark .vibrant-card-glow-pink {
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(236, 72, 153, 0.15);
+}
+
+.dark .vibrant-card-glow-cyan {
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(6, 182, 212, 0.15);
+}
+
+/* Vibrant soft badges under dark mode */
+.dark .bg-indigo-50 {
+  background-color: rgba(99, 102, 241, 0.15) !important;
+  color: #a5b4fc !important;
+}
+
+.dark .bg-pink-50 {
+  background-color: rgba(236, 72, 153, 0.15) !important;
+  color: #f9a8d4 !important;
+}
+
+.dark .bg-cyan-50 {
+  background-color: rgba(6, 182, 212, 0.15) !important;
+  color: #67e8f9 !important;
+}
+
+.dark .bg-amber-50 {
+  background-color: rgba(245, 158, 11, 0.15) !important;
+  color: #fde047 !important;
+}
+
+.dark .bg-emerald-50 {
+  background-color: rgba(16, 185, 129, 0.15) !important;
+  color: #6ee7b7 !important;
+}
+
+.dark .bg-sky-50 {
+  background-color: rgba(14, 165, 233, 0.15) !important;
+  color: #38bdf8 !important;
+}
+
+.dark .border-sky-200\/50 {
+  border-color: rgba(14, 165, 233, 0.2) !important;
+}
+
+.dark .border-emerald-200\/50 {
+  border-color: rgba(16, 185, 129, 0.2) !important;
+}
+
+.dark .bg-sky-500\/20 {
+  background-color: rgba(14, 165, 233, 0.2) !important;
+}
+
+.dark .bg-indigo-500\/20 {
+  background-color: rgba(99, 102, 241, 0.2) !important;
+}
+
+.dark .bg-emerald-500\/20 {
+  background-color: rgba(16, 185, 129, 0.2) !important;
+}
+
+/* Custom scrollbar under dark mode */
+.dark ::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.3);
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}

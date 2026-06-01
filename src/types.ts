@@ -23,6 +23,7 @@ export interface PlanSet {
 
 export interface MealLog {
   id: string;
+  name?: string;
   date: string; // YYYY-MM-DD
   calories: number;
   protein: number;
@@ -55,4 +56,45 @@ export interface ReminderSettings {
   pushNotifications: boolean;
 }
 
-export type ActiveTab = 'dashboard' | 'workouts' | 'diet' | 'activity';
+export type TaskFilter = 'all' | 'today' | 'tomorrow' | 'week' | 'morning' | 'afternoon' | 'shopping' | 'none';
+
+export type TaskPriority = 'low' | 'medium' | 'high' | 'none';
+
+export type TaskRepeat = 'none' | 'daily' | 'weekdays' | 'weekly' | 'monthly' | 'custom_days' | 'infinite';
+
+export interface Subtask {
+  id: string;
+  title: string;
+  completed: boolean;
+}
+
+export interface Task {
+  id: string;
+  listId: string;
+  title: string;
+  description: string;
+  completed: boolean;
+  dueDate: string; // YYYY-MM-DD
+  createdAt: string;
+  filterTag: TaskFilter;
+  subtasks: Subtask[];
+  order: number;
+  priority?: TaskPriority;
+  repeat?: TaskRepeat;
+  repeatCustomDays?: number;
+  repeatTimes?: number;
+  repeatTimesLeft?: number;
+}
+
+export interface TaskList {
+  id: string;
+  name: string;
+  order: number;
+}
+
+export interface TaskDailyGoal {
+  date: string; // YYYY-MM-DD
+  targetTasks: number;
+}
+
+export type ActiveTab = 'dashboard' | 'workouts' | 'diet' | 'activity' | 'tasks';
